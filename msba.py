@@ -80,7 +80,7 @@ summary = ChatPromptTemplate.from_messages(
         (
             "system",
             """
-            As an AI assistant, you will give 3 key skills from student's resume.
+            As an AI assistant, you will give 3 keywords from student's resume. Do not write full sentences. Just need words.
             Answer the question using ONLY the following context. If you don't know the answer, 
             just say you don't know. DO NOT make up an answer.
             
@@ -109,7 +109,7 @@ def get_student(topic: str):
         # Now, let's assume doc is an object with a 'metadata' attribute which is a dictionary
         name = doc.metadata["source"].split(".pdf")[0]  # Example adjustment
         response = chain2.invoke(
-            f"Give me 3 key skills from {name}'s resume related to {topic}"
+            f"Give me 3 keywords from {name}'s resume related to {topic}"
         )
         summary = response.content
         resume_link = f"View Resume of {name}"
