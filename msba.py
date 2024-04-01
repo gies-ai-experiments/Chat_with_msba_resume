@@ -17,20 +17,21 @@ from langchain.prompts import ChatPromptTemplate
 app = FastAPI()
 load_dotenv()
 
-# os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("AZURE_OPENAI_KEY")
-# os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv("AZURE_OPENAI_ENDPOINT")
-# AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
-secrets = toml.load(".key/secrets.toml")
-os.environ["AZURE_OPENAI_API_KEY"] = secrets["AZURE_OPENAI_KEY"]
-os.environ["AZURE_OPENAI_ENDPOINT"] = secrets["AZURE_OPENAI_ENDPOINT"]
-AZURE_DEPLOYMENT_NAME = secrets["AZURE_DEPLOYMENT_NAME"]
+os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("AZURE_OPENAI_KEY")
+os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+AZURE_EMBEDDING = os.getenv("AZURE_EMBEDDING")
+# secrets = toml.load(".key/secrets.toml")
+# os.environ["AZURE_OPENAI_API_KEY"] = secrets["AZURE_OPENAI_KEY"]
+# os.environ["AZURE_OPENAI_ENDPOINT"] = secrets["AZURE_OPENAI_ENDPOINT"]
+# AZURE_DEPLOYMENT_NAME = secrets["AZURE_DEPLOYMENT_NAME"]
 
 pinecone.init(
     api_key=os.getenv("PINECONE_API_KEY"),
     environment="gcp-starter",
 )
 embeddings = AzureOpenAIEmbeddings(
-    azure_deployment="embedding_large",
+    azure_deployment=AZURE_EMBEDDING,
     openai_api_version="2024-03-01-preview",
 )
 llm = AzureChatOpenAI(
@@ -79,7 +80,7 @@ summary = ChatPromptTemplate.from_messages(
         (
             "system",
             """
-            As an AI assistant, you will write a short summary of the student's resume.
+            As an AI assistant, you will give 3 key skills from student's resume.
             Answer the question using ONLY the following context. If you don't know the answer, 
             just say you don't know. DO NOT make up an answer.
             
