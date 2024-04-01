@@ -9,12 +9,13 @@ import toml
 from typing import List
 import gradio as gr
 from typing import List
-from fastapi import FastAPI
+
+# from fastapi import FastAPI
 from langchain.chat_models import AzureChatOpenAI
 from langchain.schema.runnable import RunnableLambda, RunnablePassthrough
 from langchain.prompts import ChatPromptTemplate
 
-app = FastAPI()
+# app = FastAPI()
 load_dotenv()
 
 os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("AZURE_OPENAI_KEY")
@@ -167,4 +168,5 @@ with gr.Blocks() as demo:
 
 # student_dropdown.change(view_student, inputs=student_dropdown, outputs=[student_resume, student_summary])
 
-app = gr.mount_gradio_app(app, demo, path="/")
+# app = gr.mount_gradio_app(app, demo, path="/")
+demo.launch()
