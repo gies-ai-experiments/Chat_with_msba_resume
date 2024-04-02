@@ -135,7 +135,7 @@ def render_pdf_file(file_name, page_number=0):
     file_path = os.path.join(PDF_FOLDER, file_name)
     doc = fitz.open(file_path)
     if page_number < len(doc):
-        page = doc.load_page(page_number)  # Use load_page for newer PyMuPDF versions
+        page = doc.load_page(page_number) 
         pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
         return img
