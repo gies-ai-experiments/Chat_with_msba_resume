@@ -1,4 +1,4 @@
-# from fastapi import FastAPI
+from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
 import gradio as gr
@@ -10,8 +10,9 @@ from pinecone import Pinecone
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-# app = FastAPI()
+
 load_dotenv()
+app = FastAPI()
 
 os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("AZURE_OPENAI_KEY")
 os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv("AZURE_OPENAI_ENDPOINT")
@@ -151,4 +152,4 @@ with gr.Blocks() as demo:
 # student_dropdown.change(view_student, inputs=student_dropdown, outputs=[student_resume, student_summary])
 
 # app = gr.mount_gradio_app(app, demo, path="/")
-demo.launch()
+app = gr.mount_gradio_app(app, demo, path="/")
