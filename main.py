@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
 import gradio as gr
-
+from pathlib import Path
 from langchain_openai import AzureChatOpenAI
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
@@ -10,6 +10,10 @@ from pinecone import Pinecone
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from typing import Any, List
+
+import fitz
+from PIL import Image
 
 load_dotenv()
 app = FastAPI()
@@ -96,7 +100,7 @@ def get_student(topic: str):
         # Now, let's assume doc is an object with a 'metadata' attribute which is a dictionary
         name = doc.metadata["source"].split(".pdf")[0]  # Example adjustment
         response = chain2.invoke(
-            f"Give me 3 keywords from {name}'s resume related to {topic}"
+            f"Give me 3 keywords from {name}'s resume. Try relating to {topic} but if there isn't any just list what stands out"
         )
         summary = response.content
         resume_link = f"View Resume of {name}"
@@ -112,9 +116,51 @@ def chatbot_response(messages, hisory):
 
     return response.content
 
+PDF_FOLDER = 'msba'
+
+def list_pdf_files(search_query=""):
+    """
+    List PDF files in the 'msba' directory filtered by the search query.
+    """
+    pdf_files = [f for f in os.listdir(PDF_FOLDER) if f.endswith(".pdf")]
+    if search_query:
+        pdf_files = [f for f in pdf_files if search_query.lower() in f.lower()]
+    # Return as a list of lists for DataFrame compatibility
+    return [[f] for f in pdf_files]
+
+def render_pdf_file(file_name, page_number=0):
+    """
+    Render a specific page of a PDF file as an image.
+    """
+    file_path = os.path.join(PDF_FOLDER, file_name)
+    doc = fitz.open(file_path)
+    if page_number < len(doc):
+        page = doc.load_page(page_number)  # Use load_page for newer PyMuPDF versions
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        return img
+    return None
+def list_pdf_filenames(search_query=""):
+    """
+    List PDF filenames for the dropdown selection.
+    """
+    return [f for f in os.listdir(PDF_FOLDER) if f.endswith(".pdf") and (search_query.lower() in f.lower() if search_query else True)]
+
+def display_pdf_from_name(pdf_name):
+    """
+    Display the PDF based on the selected name from the Dropdown.
+    """
+    if pdf_name:
+        return render_pdf_file(pdf_name)
+    return None
+
 
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with MSBA Resume")
+    
+    with gr.Tab("Chat"):
+        chat_interface = gr.ChatInterface(fn=chatbot_response, title="MSBA Chatbot", chatbot=gr.Chatbot(render=False, height=500))
+        
     with gr.Tab("Search"):
         gr.Markdown(
             "## Search students with the skills or experiences you are looking for"
@@ -122,34 +168,30 @@ with gr.Blocks() as demo:
         search_input = gr.Textbox(label="Enter skills or experiences")
         search_button = gr.Button("Search")
         search_results = gr.Dataframe(
-            headers=["Name", "Summary", "Resume"], interactive=False
+            headers=["Name", "Summary"], interactive=False
         )
 
         def search_skills(query):
             students = get_student(query)
             data = [
-                [student["name"], student["summary"], student["resume_link"]]
+                [student["name"], student["summary"]]
                 for student in students
             ]
             return data
 
         search_button.click(search_skills, inputs=search_input, outputs=search_results)
-    with gr.Tab("Chat"):
-        chat_interface = gr.ChatInterface(fn=chatbot_response, title="MSBA Chatbot", chatbot=gr.Chatbot(render=False, height=500))
+        
+    with gr.Tab("Resumes"):
+        with gr.Row():
+            with gr.Column():
+                show_img = gr.Image(label='PDF Preview')
+            with gr.Column():
+                pdf_dropdown = gr.Dropdown(label="Select a PDF", choices=list_pdf_filenames())
+                show_button = gr.Button("Show PDF")
+                
+                show_button.click(fn=display_pdf_from_name, inputs=[pdf_dropdown], outputs=[show_img])
 
-# with gr.Tab("Student Viewer"):
-#     # student_dropdown = gr.Dropdown(
-#     #     label="Select a Student", choices=[student.name for student in students]
-#     # )  # List of student names
-#     student_resume = gr.Document(label="Student Resume")
-#     student_summary = gr.Textbox(label="Student Summary", interactive=False)
 
-#     def view_student(student_name):
 
-#         # resume_path, summary = get_student_info(student_name)
-#         return "Hi"  # resume_path, summary
 
-# student_dropdown.change(view_student, inputs=student_dropdown, outputs=[student_resume, student_summary])
-
-# app = gr.mount_gradio_app(app, demo, path="/")
 app = gr.mount_gradio_app(app, demo, path="/")
