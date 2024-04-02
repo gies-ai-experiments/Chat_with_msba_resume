@@ -88,8 +88,7 @@ chain2 = (
 
 
 def get_student(topic: str):
-    # Fetch documents and scores based on the topic, limited to the top 5 results
-    docs_scores = vector_store.similarity_search_with_score(topic, 5)
+    docs_scores = vector_store.similarity_search_with_score(topic, 7)
     recommendations = []
     for doc_score in docs_scores:
         doc, score = doc_score  # Assuming doc_score is a tuple like (doc, score)
@@ -115,8 +114,7 @@ def chatbot_response(messages, hisory):
 
 with gr.Blocks() as demo:
     gr.Markdown("# Chat with MSBA Resume")
-    # with gr.Row():
-    with gr.Column():
+    with gr.Tab("Search"):
         gr.Markdown(
             "## Search students with the skills or experiences you are looking for"
         )
@@ -135,8 +133,8 @@ with gr.Blocks() as demo:
             return data
 
         search_button.click(search_skills, inputs=search_input, outputs=search_results)
-    with gr.Column():
-        chat_interface = gr.ChatInterface(fn=chatbot_response, title="MSBA Chatbot")
+    with gr.Tab("Chat"):
+        chat_interface = gr.ChatInterface(fn=chatbot_response, title="MSBA Chatbot", chatbot=gr.Chatbot(render=False, height=500))
 
 # with gr.Tab("Student Viewer"):
 #     # student_dropdown = gr.Dropdown(
