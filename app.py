@@ -1,17 +1,15 @@
 # from fastapi import FastAPI
-import pinecone
-from langchain.embeddings import AzureOpenAIEmbeddings
-from langchain.vectorstores import Pinecone
 from dotenv import load_dotenv
 import os
-from typing import List
 import gradio as gr
-from typing import List
 
-from langchain.chat_models import AzureChatOpenAI
-from langchain.schema.runnable import RunnableLambda, RunnablePassthrough
-from langchain.prompts import ChatPromptTemplate
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureOpenAIEmbeddings
+from langchain_pinecone import PineconeVectorStore
+from pinecone import Pinecone
 
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 # app = FastAPI()
 load_dotenv()
 
@@ -20,10 +18,8 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
 AZURE_EMBEDDING = os.getenv("AZURE_EMBEDDING")
 
-pinecone.init(
-    api_key=os.getenv("PINECONE_API_KEY"),
-    environment="gcp-starter",
-)
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+
 embeddings = AzureOpenAIEmbeddings(
     azure_deployment=AZURE_EMBEDDING,
     openai_api_version="2024-03-01-preview",
@@ -34,10 +30,7 @@ llm = AzureChatOpenAI(
     temperature=0.1,
 )
 
-vector_store = Pinecone.from_existing_index(
-    "msba",
-    embeddings,
-)
+vector_store = PineconeVectorStore(index_name='msba', embedding=embeddings)
 retriever = vector_store.as_retriever()
 
 prompt = ChatPromptTemplate.from_messages(
