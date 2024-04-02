@@ -1,16 +1,13 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+# from fastapi import FastAPI
 import pinecone
 from langchain.embeddings import AzureOpenAIEmbeddings
 from langchain.vectorstores import Pinecone
 from dotenv import load_dotenv
 import os
-import toml
 from typing import List
 import gradio as gr
 from typing import List
 
-# from fastapi import FastAPI
 from langchain.chat_models import AzureChatOpenAI
 from langchain.schema.runnable import RunnableLambda, RunnablePassthrough
 from langchain.prompts import ChatPromptTemplate
@@ -22,10 +19,6 @@ os.environ["AZURE_OPENAI_API_KEY"] = os.getenv("AZURE_OPENAI_KEY")
 os.environ["AZURE_OPENAI_ENDPOINT"] = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
 AZURE_EMBEDDING = os.getenv("AZURE_EMBEDDING")
-# secrets = toml.load(".key/secrets.toml")
-# os.environ["AZURE_OPENAI_API_KEY"] = secrets["AZURE_OPENAI_KEY"]
-# os.environ["AZURE_OPENAI_ENDPOINT"] = secrets["AZURE_OPENAI_ENDPOINT"]
-# AZURE_DEPLOYMENT_NAME = secrets["AZURE_DEPLOYMENT_NAME"]
 
 pinecone.init(
     api_key=os.getenv("PINECONE_API_KEY"),
@@ -131,7 +124,6 @@ with gr.Blocks() as demo:
     gr.Markdown("# Chat with MSBA Resume")
     # with gr.Row():
     with gr.Column():
-        # with gr.Tab("Keyword Search"):
         gr.Markdown(
             "## Search students with the skills or experiences you are looking for"
         )
@@ -142,7 +134,7 @@ with gr.Blocks() as demo:
         )
 
         def search_skills(query):
-            students = get_student(query)  # Directly get the list of dictionaries
+            students = get_student(query)
             data = [
                 [student["name"], student["summary"], student["resume_link"]]
                 for student in students
@@ -151,7 +143,6 @@ with gr.Blocks() as demo:
 
         search_button.click(search_skills, inputs=search_input, outputs=search_results)
     with gr.Column():
-        # with gr.Tab("Chat"):
         chat_interface = gr.ChatInterface(fn=chatbot_response, title="MSBA Chatbot")
 
 # with gr.Tab("Student Viewer"):
